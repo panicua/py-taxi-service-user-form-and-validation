@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
@@ -106,19 +107,16 @@ class DriverLicenceUpdateView(LoginRequiredMixin, generic.UpdateView):
     form_class = DriverLicenseUpdateForm
 
 
-def add_driver_to_car(request):
+def add_remove_car_driver(request):
     car_id = request.POST.get("car_id")
     driver = request.user
+    action = request.POST.get("action")
 
-    Car.objects.get(pk=car_id).drivers.add(driver)
-
-    return redirect("taxi:car-detail", pk=car_id)
-
-
-def remove_driver_from_car(request):
-    car_id = request.POST.get("car_id")
-    driver = request.user
-
-    Car.objects.get(pk=car_id).drivers.remove(driver)
+    if action == "add":
+        Car.objects.get(pk=car_id).drivers.add(driver)
+    elif action == "remove":
+        Car.objects.get(pk=car_id).drivers.remove(driver)
+    else:
+        return HttpResponse("Invalid action", status=400)
 
     return redirect("taxi:car-detail", pk=car_id)
